@@ -1,0 +1,19 @@
+{
+  "name" : "broadshout/bs-file",
+    "description": "ZF3 module for generic file related helpers and plugins",
+    "type": "module",
+    "license": "Copyright 2014 Broadshout Technologies SARL",
+
+    "suggest" : {
+ "broadshout/bs-base" : "Required in root"
+  },
+
+    "autoload": {
+        "psr-4": {
+            "BsFile\\": "src/"
+        },
+        "classmap": [
+            "./Module.php"
+        ]
+    }
+}

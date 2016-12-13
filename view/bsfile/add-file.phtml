@@ -1,0 +1,209 @@
+<?php
+$addFileScript = <<<SCRIPT
+  $(document).ready(function() {
+    'use strict';
+
+    // Initialize the jQuery File Upload widget:
+    /*$('#fileupload').fileupload({
+        acceptFileTypes: /(\.|\/)(bmp|jpe?g|png|docx?|pdf|xlsx?|pptx?|mp4|mkv|avi|wmv|zip|rar|tar.gz)$/i,
+        maxFileSize: 8388608, // 8 MB - max size by post upload by default, change if php.ini is modified
+        // Uncomment the following to send cross-domain cookies:
+        //xhrFields: {withCredentials: true},
+        // URL to complete 
+        url: '{$this->url('bs-file-manager/upload-file',array('fileToken'=> $this->fileToken))}'
+    });*/
+    
+    /**
+    *   Dropzone Initialization.
+    */
+    Dropzone.autoDiscover = false;
+    var myDropzone = new Dropzone("#my-awesome-dropzone",{
+        url: '{$this->url('bs-file-manager/upload-file',array('fileToken'=> $this->fileToken))}',
+        maxFileSize: 8,
+        acceptedFiles:'image/*,application/pdf,.xlsx,xls,.pptx,ppt,.mp4,.mkv,.avi,.wmv,.zip,.rar,.tar.gz,.docx,.doc',
+        autoProcessQueue: true,
+        uploadMultiple: true,
+        parallelUploads: 100,
+        maxFiles: 100,
+        addRemoveLinks: true,
+        removedfile: function(file) {
+            var name = file.name;
+            var deleteUrl = file.previewElement.querySelector(".dz-remove").href;
+            $.ajax({
+                type: 'DELETE',
+                url: deleteUrl,
+            });
+            var _ref;
+            return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;        
+        },
+    });
+    myDropzone.on('success', function(file, dataUrl){
+        var previewElement = file.previewElement;
+        var deleteUrl = dataUrl.files[0].deleteUrl;
+        file.previewElement.querySelector(".dz-remove").href = deleteUrl;
+    });
+
+    // Enable iframe cross-domain access via redirect option:
+    /*$('#fileupload').fileupload(
+        'option',
+        'redirect',
+        window.location.href.replace(
+            /\/[^\/]*$/,
+            '/cors/result.html?%s'
+        )
+    );*/
+            
+    
+        // Load existing files:
+        /*$('#fileupload').addClass('fileupload-processing');
+        $.ajax({
+            // Uncomment the following to send cross-domain cookies:
+            //xhrFields: {withCredentials: true},
+            url: $('#fileupload').fileupload('option', 'url'),
+            dataType: 'json',
+            context: $('#fileupload')[0]
+        }).always(function () {
+            $(this).removeClass('fileupload-processing');
+        }).done(function (result) {
+            $(this).fileupload('option', 'done')
+                .call(this, null, {result: result});
+        });*/
+    
+
+});
+SCRIPT;
+
+$this->inlineScript()->appendScript($addFileScript);
+?>
+<div class="dropzone-previews dropzone" id="my-awesome-dropzone"></div>
+
+
+
+<?php /*?>
+<!-- Ancien template pour le plugin fileuploader -->
+
+<div id="fileupload">
+<label class="col-sm-3 control-label">Upload File</label>
+<!-- Redirect browsers with JavaScript disabled to the origin page -->
+<noscript>
+Please enable JavaScript !
+</noscript>
+<!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
+<div class="row fileupload-buttonbar">
+	<div class="col-lg-7">
+		<div class="btn-toolbar">
+			<!-- The fileinput-button span is used to style the file input field as button -->
+			<span class="btn btn-success fileinput-button"> <i class="fa fa-plus"></i>
+				<span>Add files...</span> <input type="file" name="files[]" multiple>
+			</span>
+			<button type="submit" class="btn btn-primary start">
+				<i class="fa fa-upload"></i> <span>Start upload</span>
+			</button>
+			<!-- The loading indicator is shown during file processing -->
+			<span class="fileupload-loading"></span>
+		</div>
+	</div>
+	<!-- The global progress information -->
+	<div class="col-lg-5 fileupload-progress fade">
+		<!-- The global progress bar -->
+		<div class="progress progress-striped active" role="progressbar"
+			aria-valuemin="0" aria-valuemax="100">
+			<div class="progress-bar progress-bar-success" style="width: 0%;"></div>
+		</div>
+		<!-- The extended global progress information -->
+		<div class="progress-extended">&nbsp;</div>
+	</div>
+</div>
+<!-- The table listing the files available for upload/download -->
+<table role="presentation" class="table table-striped">
+	<tbody class="files"></tbody>
+</table>
+
+
+<!-- The template to display files available for upload -->
+<script id="template-upload" type="text/x-tmpl">
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-upload fade">
+        <td>
+            <span class="preview"></span>
+        </td>
+        <td>
+            <p class="name">{%=file.name%}</p>
+            {% if (file.error) { %}
+            <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+            {% } %}
+        </td>
+        <td>
+            <p class="size">{%=o.formatFileSize(file.size)%}</p>
+            {% if (!o.files.error) { %}
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                 aria-valuenow="0">
+                <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+            </div>
+            {% } %}
+        </td>
+        <td>
+            {% if (!o.files.error && !i && !o.options.autoUpload) { %}
+            <button class="btn btn-primary start">
+                <i class="fa fa-upload"></i>
+                <span>Start</span>
+            </button>
+            {% } %}
+            {% if (!i) { %}
+            <button class="btn btn-warning cancel">
+                <i class="fa fa-ban"></i>
+                <span>Cancel</span>
+            </button>
+            {% } %}
+        </td>
+    </tr>
+    {% } %}
+</script>
+
+<!-- The template to display files available for download -->
+<script id="template-download" type="text/x-tmpl">
+    {% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-download fade">
+        <td>
+<span class="preview">
+    {% if (file.thumbnailUrl) { %}
+        <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img
+                src="{%=file.thumbnailUrl%}"></a>
+    {% } %}
+</span>
+        </td>
+        <td>
+            <p class="name">
+                {% if (file.url) { %}
+                <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}">
+                    {%=file.thumbnailUrl?'data-gallery':''%}>{%=file.name%}</a>
+                {% } else { %}
+                <span>{%=file.name%}</span>
+                {% } %}
+            </p>
+            {% if (file.error) { %}
+            <div><span class="label label-danger">Error</span> {%=file.error%}</div>
+            {% } %}
+        </td>
+        <td>
+            <span class="size">{%=o.formatFileSize(file.size)%}</span>
+        </td>
+        <td>
+            {% if (file.deleteUrl) { %}
+            <button class="btn btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}">{% if
+                (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}
+                <i class="fa fa-trash "></i>
+                <span>Delete</span>
+            </button>
+            <input type="checkbox" name="delete" value="1" class="toggle">
+            {% } else { %}
+            <button class="btn btn-warning cancel">
+                <i class="fa fa-ban"></i>
+                <span>Cancel</span>
+            </button>
+            {% } %}
+        </td>
+    </tr>
+    {% } %}
+</script>
+</div><?php */ ?>
